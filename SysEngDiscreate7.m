@@ -1,0 +1,83 @@
+function [ haveConverged ] = SysEngDiscreate7( )
+lambda_1 = 10;
+lambda_2  = 20;
+mu = 8;
+delta_t = 0.001;
+n1 = [0 1 2 3];
+n2 = [3 2 1 0];
+
+speedColumn = [18 10 14 0]';
+referenceValue = [10.8801287208367, 10.9107276819205, 10.937456078707, 10.9610046265697];
+haveConverged=1;
+for i = 1:4
+    Probability_transition = ...
+        [1-(lambda_2*delta_t+lambda_1*delta_t), lambda_2*delta_t, lambda_1*delta_t, 0;...
+            3*mu*delta_t, 1-(lambda_1*delta_t+3*mu*delta_t), 0, lambda_1*delta_t; ...
+            3*mu*delta_t, 0, 1-(lambda_2*delta_t+3*mu*delta_t), lambda_2*delta_t;...
+            0, n1(i)*mu*delta_t, n2(i)*mu*delta_t, 1-3*mu*delta_t];
+    averageSpeed = 0;
+    currentState = 1;
+    totalDistance = 0;
+    counter = 1;
+    totalDistance = totalDistance + 0.018;
+    tic
+    
+    pt= Probability_transition;
+    while(counter < 1000001)
+        counter = counter +1;
+        if(currentState == 1)
+            nextState = Probability_transition(1,:);
+        elseif(currentState==2)
+            nextState = Probability_transition(2,:);
+        elseif(currentState==3)
+            nextState = Probability_transition(3,:);
+        else  
+            nextState = Probability_transition(4,:);
+        end   
+        nextPosition = rand();
+        if(nextPosition < nextState(1))
+            currentState = 1;
+            totalDistance = totalDistance + 0.018;
+        elseif(nextPosition < sum(nextState(1:2)))
+            currentState = 2;
+            totalDistance = totalDistance + 0.01;
+        elseif(nextPosition < sum(nextState(1:3)))
+            currentState = 3;
+            totalDistance = totalDistance + 0.014;
+        else
+            currentState = 4;
+        end
+    end
+    toc
+    averageSpeed = totalDistance./(counter*delta_t);
+    disp('avg speed');
+    averageSpeed
+    disp('ref value')
+    referenceValue(i)
+    disp('pro. diff')
+    100*abs(averageSpeed-referenceValue(i))/referenceValue(i)
+    
+    
+    
+    if(false)
+    a1 = sprintf('Strategy: n1=%s, n2=%s',num2str(n1(i)),num2str(n2(i)));
+    disp(a1);
+    a2 = sprintf('Average speed: %s',num2str(averageSpeed));
+    disp(a2);
+    a3 = sprintf('Steps for convergence within 10percent %s steps',num2str(counter));
+    disp(a3)
+    a4 = sprintf('Distance travelled %s is',num2str(totalDistance));
+    disp(a4);
+    end
+    
+    if((abs(averageSpeed-referenceValue(i)) < referenceValue(i)*0.01) & (haveConverged == 1))
+    else
+        haveConverged =0;
+        break;
+    end
+          
+    
+end
+
+end
+            

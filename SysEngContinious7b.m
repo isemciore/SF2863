@@ -73,13 +73,10 @@ for i = 1:4
         haveConverged =0;
         break;
     end
-    
-    disp('avg speed');
-    averageSpeed
-    disp('ref value')
-    referenceValue(i)
-    disp('pro. diff')
-    100*abs(averageSpeed-referenceValue(i))/referenceValue(i)
+    a1 = sprintf('avg speed %s', num2str(averageSpeed));
+    disp(a1)
+    a2 = sprintf('pro diff %s',num2str(100*abs(averageSpeed-referenceValue(i))/referenceValue(i)));
+    disp(a2)
     
     
     if(false)

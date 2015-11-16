@@ -1,4 +1,4 @@
-function [ maxDistance ] = SysEngDiscreate7( )
+function [ haveConverged ] = SysEngDiscreate7( )
 lambda_1 = 10;
 lambda_2  = 20;
 mu = 8;
@@ -7,7 +7,7 @@ n1 = [0 1 2 3];
 n2 = [3 2 1 0];
 
 speedColumn = [18 10 14 0]';
-referenceValue = [10.8801, 10.9107, 10.9375, 10.9610];
+referenceValue = [10.8801287208367, 10.9107276819205, 10.937456078707, 10.9610046265697];
 haveConverged=1;
 for i = 1:4
     Probability_transition = ...
@@ -16,29 +16,51 @@ for i = 1:4
             3*mu*delta_t, 0, 1-(lambda_2*delta_t+3*mu*delta_t), lambda_2*delta_t;...
             0, n1(i)*mu*delta_t, n2(i)*mu*delta_t, 1-3*mu*delta_t];
     averageSpeed = 0;
-    currentState = [1 0 0 0];
+    currentState = 1;
     totalDistance = 0;
     counter = 1;
-    totalDistance = totalDistance + currentState*speedColumn.*delta_t;
-    oldAverage = 0;
-    while(counter < 1001)
+    totalDistance = totalDistance + 0.018;
+    
+    pt = Probability_transition;
+    mtrxFix = [1 0 0 0]*pt + [1 1 0 0]*pt+[1 1 1 0]*pt;
+    Probability_transition = mtrxFix;
+    
+    tic
+    
+    randomNum = rand(1000001,1);
+    while(counter < 1000001)
         counter = counter +1;
-        nextState = currentState*Probability_transition;
-        nextPosition = rand();
+        if(currentState == 1)
+            nextState = Probability_transition(1,:);
+        elseif(currentState==2)
+            nextState = Probability_transition(2,:);
+        elseif(currentState==3)
+            nextState = Probability_transition(3,:);
+        else  
+            nextState = Probability_transition(4,:);
+        end   
+        nextPosition = randomNum(counter);
         if(nextPosition < nextState(1))
-            tempState = [1 0 0 0];
-        elseif(nextPosition < sum(nextState(1:2)))
-            tempState = [0 1 0 0];
+            currentState = 1;
+            totalDistance = totalDistance + 0.018;
+        elseif(nextPosition < nextState(1))
+            currentState = 2;
+            totalDistance = totalDistance + 0.01;
         elseif(nextPosition < sum(nextState(1:3)))
-            tempState = [0 0 1 0];
+            currentState = 3;
+            totalDistance = totalDistance + 0.014;
         else
-            tempState = [0 0 0 1];
+            currentState = 4;
         end
-        totalDistance = totalDistance + tempState*speedColumn.*delta_t;
-        oldAverage = averageSpeed;
-        averageSpeed = totalDistance./(counter*delta_t);
-        currentState = tempState;
     end
+    toc
+    averageSpeed = totalDistance./(counter*delta_t);
+    a1 = sprintf('avg speed %s', num2str(averageSpeed));
+    disp(a1)
+    a2 = sprintf('pro diff %s',num2str(100*abs(averageSpeed-referenceValue(i))/referenceValue(i)));
+    disp(a2)
+    
+    
     
     if(false)
     a1 = sprintf('Strategy: n1=%s, n2=%s',num2str(n1(i)),num2str(n2(i)));
@@ -51,9 +73,10 @@ for i = 1:4
     disp(a4);
     end
     
-    if((abs(averageSpeed-referenceValue(i)) < referenceValue(i)*0.01) && (haveConverged == 1))
+    if((abs(averageSpeed-referenceValue(i)) < referenceValue(i)*0.01) & (haveConverged == 1))
     else
         haveConverged =0;
+        break;
     end
           
     

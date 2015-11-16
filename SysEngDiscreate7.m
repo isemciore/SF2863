@@ -20,9 +20,14 @@ for i = 1:4
     totalDistance = 0;
     counter = 1;
     totalDistance = totalDistance + 0.018;
+    
+    pt = Probability_transition;
+    mtrxFix = [pt(:,1) pt(:,1)+pt(:,2) pt(:,1)+pt(:,2)+pt(:,3) zeros(4,1)];
+    Probability_transition = mtrxFix;
+    
     tic
     
-    pt= Probability_transition;
+    randomNum = rand(1000001,1);
     while(counter < 1000001)
         counter = counter +1;
         if(currentState == 1)
@@ -34,14 +39,14 @@ for i = 1:4
         else  
             nextState = Probability_transition(4,:);
         end   
-        nextPosition = rand();
+        nextPosition = randomNum(counter);
         if(nextPosition < nextState(1))
             currentState = 1;
             totalDistance = totalDistance + 0.018;
-        elseif(nextPosition < sum(nextState(1:2)))
+        elseif(nextPosition < nextState(2))
             currentState = 2;
             totalDistance = totalDistance + 0.01;
-        elseif(nextPosition < sum(nextState(1:3)))
+        elseif(nextPosition < nextState(3))
             currentState = 3;
             totalDistance = totalDistance + 0.014;
         else
@@ -50,12 +55,10 @@ for i = 1:4
     end
     toc
     averageSpeed = totalDistance./(counter*delta_t);
-    disp('avg speed');
-    averageSpeed
-    disp('ref value')
-    referenceValue(i)
-    disp('pro. diff')
-    100*abs(averageSpeed-referenceValue(i))/referenceValue(i)
+    a1 = sprintf('avg speed %s', num2str(averageSpeed));
+    disp(a1)
+    a2 = sprintf('pro diff %s',num2str(100*abs(averageSpeed-referenceValue(i))/referenceValue(i)));
+    disp(a2)
     
     
     
